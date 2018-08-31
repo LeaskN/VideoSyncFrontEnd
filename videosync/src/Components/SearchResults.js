@@ -2,28 +2,42 @@ import React, { Component } from 'react';
 
 class SearchResults extends Component {
   state = {
-    clickedId: 'tgbNymZ7vqY',
+    clickedId: ''
+  };
+
+  searchResultClicked = (result) => {
+    (this.props.addToPlaylist(result));
+    //  this.props.addToPlaylist(result)
+  }
+
+  formatDuration(duration){
+    let firstIteration = duration.split('PT').join('').split('S').join('');
+    let mSplit = firstIteration.split('M');
+    let seconds = mSplit[mSplit.length-1] || '00';
+    let hSplit = mSplit[0].split('H');
+    let mins;
+    let hours;
+    if (hSplit.length === 2) {
+      hours = hSplit[0]
+      mins = hSplit[1]
+    } else {
+      hours = 0;
+      mins = hSplit[0];
+    }
+    const pad = number => number.length === 1 ? '0' + number : number
+    return `${pad(hours)}:${pad(mins)}:${pad(seconds)}`
   }
   render() {
     const { results } = this.props;
     return (
-        <div classname="searchResults">
-          <div className="row" style={{width:"100%", justifyContent:"center"}}>
-              <iframe title="iframe1"width="600" height="450"
-                src={`https://www.youtube.com/embed/${this.state.clickedId}`}>
-              </iframe>
+      <div style={{justifyContent:"center"}}>
+        {results.map( result => (
+          <div key={result.id} onClick={() => this.searchResultClicked(result)} style={{cursor:"pointer", height:"20vw", backgroundSize: "100% 250px", backgroundRepeat: "no-repeat", backgroundImage:`url("${result.thumbnails.high.url}")`}}>
+            <h6 style={{ backgroundColor:"rgb(0, 0, 0, .5)",  maxWidth:"380px", justifySelf:"flex-end", color:"white"}}>{result.localized.title}</h6>
+            <span style={{ justifySelf:"flex-end", color:"white"}}>{this.formatDuration(result.duration)}</span>
           </div>
-          <div className="row" style={{width:"100%", justifyContent:"center"}}>
-            {results.map( result => (
-              <a key={result.id} href={`https://www.youtube.com/watch?v=${result.id}`}>
-                <div className="col-3" style={{cursor:"pointer", margin:"5px", height:"40vh", minWidth:"400px", backgroundSize: "100% 250px", backgroundRepeat: "no-repeat", backgroundImage:`url("${result.thumbnails.high.url}")`}}>
-                  <h2 style={{ backgroundColor:"rgb(0, 0, 0, .5)",  maxWidth:"380px", justifySelf:"flex-end", color:"white"}}>{result.localized.title}</h2>
-                  <span style={{ justifySelf:"flex-end", color:"white"}}>{result.duration.split("H").join(":").split("M").join(":").split("PT").join('').split("S").join("")}</span>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
+        ))}
+      </div>
     )
   }
 };
