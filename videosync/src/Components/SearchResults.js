@@ -6,8 +6,7 @@ class SearchResults extends Component {
   };
 
   searchResultClicked = (result) => {
-    (this.props.addToPlaylist(result));
-    //  this.props.addToPlaylist(result)
+    this.props.addToPlaylist(result);
   }
 
   formatDuration(duration){
@@ -34,7 +33,7 @@ class SearchResults extends Component {
         {results.map( result => (
           <div key={result.id} onClick={() => this.searchResultClicked(result)} style={{cursor:"pointer", height:"20vw", backgroundSize: "100% 250px", backgroundRepeat: "no-repeat", backgroundImage:`url("${result.thumbnails.high.url}")`}}>
             <h6 style={{ backgroundColor:"rgb(0, 0, 0, .5)",  maxWidth:"380px", justifySelf:"flex-end", color:"white"}}>{result.localized.title}</h6>
-            <span style={{ justifySelf:"flex-end", color:"white"}}>{this.formatDuration(result.duration)}</span>
+            <span style={{ borderRadius:"10%", backgroundColor:"rgb(0, 0, 0, .5)", justifySelf:"flex-end", color:"white"}}>{this.formatDuration(result.duration)}</span>
           </div>
         ))}
       </div>

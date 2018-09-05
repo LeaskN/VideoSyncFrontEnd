@@ -7,6 +7,7 @@ import Playlists from './Components/Playlists';
 import LandingPage from './Components/LandingPage';
 import Playlist from './Components/Playlist';
 
+
 class App extends Component {
   state = {
     searchTerm: '',
@@ -17,7 +18,7 @@ class App extends Component {
     playlists: [],
     playlist: [],
   };
-
+  
   componentDidMount() {
     const API_URL = 'http://localhost:5000/api/v1/playlists'
     fetch(API_URL)

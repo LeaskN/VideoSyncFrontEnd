@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { FaUserAstronaut, FaUserNinja, FaUserSecret, FaUserTie, FaUserGraduate, FaPoo } from 'react-icons/fa';
+
 
 class Users extends Component {
   state = {
@@ -7,39 +9,17 @@ class Users extends Component {
   render() {    
     return (
       <div style={{justifyContent:"center"}}>
-        <div className="card text-white bg-success mb-3">
-          <div className="card-header">Header</div>
+        <div style={{backgroundColor:"#138C8D"}}className="card text-white mb-3">
+          <div className="card-header">Users:</div>
+          <div className="card-header"><FaUserAstronaut/> <FaUserNinja/> <FaUserSecret/> <FaUserTie/> <FaUserGraduate/> <FaPoo/> </div>
           <div className="card-body">
-            <h4 className="card-title">Success card title</h4>
-            <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          </div>
-        </div>
-        <div className="card text-white bg-success mb-3">
-          <div className="card-header">Header</div>
-          <div className="card-body">
-            <h4 className="card-title">Success card title</h4>
-            <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          </div>
-        </div>
-        <div className="card text-white bg-success mb-3">
-          <div className="card-header">Header</div>
-          <div className="card-body">
-            <h4 className="card-title">Success card title</h4>
-            <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          </div>
-        </div>
-        <div className="card text-white bg-success mb-3">
-          <div className="card-header">Header</div>
-          <div className="card-body">
-            <h4 className="card-title">Success card title</h4>
-            <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-          </div>
-        </div>
-        <div className="card text-white bg-success mb-3">
-          <div className="card-header">Header</div>
-          <div className="card-body">
-            <h4 className="card-title">Success card title</h4>
-            <p className="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+            <p className="card-text">
+            </p>
+              <FaUserAstronaut/> Howdy!<hr/>
+              <FaUserGraduate/> How's it going?<hr/>
+              <FaUserSecret/> You'd like to know!<hr/>
+              <FaUserGraduate/> I just want a job 😭<hr/>
+              <FaPoo/> This playlist is crap!<hr/>
           </div>
         </div>
       </div>
