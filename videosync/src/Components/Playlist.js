@@ -23,21 +23,28 @@ class Playlists extends Component {
     playlistData: {
       currentTime: 0,
       currentVideoIndex: -1,
-      isPlaying: false
+      isPlaying: false,
+      hostTime: Date.now(),
     },
     done: false,
-    creatorId: '',
     playlistOwner: false,
   };
   setVideoState = () => {
-    if(this.videoPlayer){
+    if (this.videoPlayer) {
       if (!this.state.playlistData.isPlaying) {
         this.videoPlayer.pauseVideo();
       } else {
         this.videoPlayer.playVideo();
       }
-      if (Math.abs(this.videoPlayer.getCurrentTime() - this.state.playlistData.currentTime) > 0.1) {
-        this.videoPlayer.seekTo(this.state.playlistData.currentTime);
+      const videoTime = this.state.playlistData.currentTime;
+      const differenceFromHost = (Date.now() - this.state.playlistData.hostTime)/1000;
+      const expectedTime = videoTime + differenceFromHost;
+      const differenceFromRealTime = this.videoPlayer.getCurrentTime() - expectedTime;
+      console.log((this.videoPlayer.getCurrentTime() - videoTime));
+      console.log('Difference:', differenceFromRealTime);
+      if (Math.abs(differenceFromRealTime) > 0.084) {
+        console.log('seeking to: ', expectedTime );
+        this.videoPlayer.seekTo(expectedTime + .1);
       }
     }
   }
@@ -53,30 +60,60 @@ class Playlists extends Component {
     }
   }
   nextVideo = () => {
-    console.log(this.state.videos.length);
-    const { id } = this.props.match.params;
-    if(this.state.playlistData.currentVideoIndex === this.state.videos.length - 1){
-      this.setState({
-        currentVideoId: '',
-      })
-      this.videoPlayer = null;
-      database.ref('/playlists/' + id).set({
-        ...this.state.playlistData,
-        currentTime: 0,
-        isPlaying: true,
-        currentVideoIndex: 0,
-      });
-    } else {
-      this.setState({
-        currentVideoId: '',
-      })
-      this.videoPlayer = null;
-      database.ref('/playlists/' + id).set({
-        ...this.state.playlistData,
-        currentTime: 0,
-        isPlaying: true,
-        currentVideoIndex: this.state.playlistData.currentVideoIndex + 1
-      });
+    if(this.state.playlistOwner){
+      const { id } = this.props.match.params;
+      console.log(this.videoPlayer);
+      if(this.state.playlistData.currentVideoIndex >= this.state.videos.length - 1){
+        this.videoPlayer = null;
+        database.ref('/playlists/' + id).set({
+          ...this.state.playlistData,
+          creatorId: this._user.uid,
+          currentTime: 0,
+          isPlaying: true,
+          currentVideoIndex: 0,
+          hostTime: Date.now(),
+        });
+        this.setState({
+          currentVideoId: ''
+        }, () => {
+          this.setState({
+            currentVideoId: this.state.videos[0].youtubeId,
+            playlistData: {
+              ...this.state.playlistData,
+              creatorId: this._user.uid,
+              currentTime: 0,
+              isPlaying: true,
+              currentVideoIndex: 0,
+              hostTime: Date.now(),
+            }
+          })
+        })
+      } else {
+        this.videoPlayer = null;
+        database.ref('/playlists/' + id).set({
+          ...this.state.playlistData,
+          creatorId: this._user.uid,
+          currentTime: 0,
+          isPlaying: true,
+          currentVideoIndex: this.state.playlistData.currentVideoIndex + 1,
+          hostTime: Date.now(),
+        });
+        this.setState({
+          currentVideoId: '',
+        }, () => {
+          this.setState({
+            currentVideoId: this.state.videos[this.state.playlistData.currentVideoIndex + 1].youtubeId,
+            playlistData: {
+              ...this.state.playlistData,
+              creatorId: this._user.uid,
+              currentTime: 0,
+              isPlaying: true,
+              currentVideoIndex: this.state.playlistData.currentVideoIndex + 1,
+              hostTime: Date.now(),
+            }
+          })
+        })
+      }
     }
   }
   addToPlaylist = (video) => {
@@ -92,15 +129,6 @@ class Playlists extends Component {
   async componentDidMount(){
     const { id } = this.props.match.params;
     await this.refresh()
-    database.ref('/playlists/' + id).on('value', (snapshot) => {
-      const playlistData = snapshot.val();            
-      this.setState({
-        playlistData,
-        currentVideoId: this.state.videos[playlistData.currentVideoIndex].youtubeId
-      }, () => {
-        this.setVideoState();
-      })
-    });
     firebase.auth().signInAnonymously().catch(function(error) {
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -108,23 +136,48 @@ class Playlists extends Component {
     });
     firebase.auth().onAuthStateChanged( user => {
       if(user){
+        this._user = user;
         database.ref('/playlists/' + id).once('value').then( snapshot => {
-          const creatorId = snapshot.val().creatorId
-          if (!creatorId || creatorId === ''){
-              database.ref('/playlists/' + id).set({
-                ...this.state.playlistData,
-                currentTime: 0,
-                isPlaying: true,
-                creatorId: user.uid,
-              });
-              this.setState({
-                playlistOwner: true
-              });
-          } else if (creatorId === user.uid) {
-              this.setState({
-                playlistOwner: true
-              });
+          const playlistData = snapshot.val();
+          if (!playlistData.creatorId || playlistData.creatorId === ''){
+            database.ref('/playlists/' + id).set({
+              currentTime: 0,
+              currentVideoIndex: 0,
+              isPlaying: true,
+              creatorId: user.uid,
+              hostTime: Date.now(),
+            });
+            this.setState({
+              playlistOwner: true
+            });
+            this.setVideoState();
+          } else if (playlistData.creatorId === user.uid) {
+            this.setState({
+              playlistOwner: true,
+              playlistData
+            });
+            this.setVideoState();
+          } else {
+            database.ref('/playlists/' + id).on('value', (snapshot) => {
+              const playlistData = snapshot.val();   
+              if (!this.state.videos[playlistData.currentVideoIndex]) {
+                this.setState({
+                  playlistData,
+                  currentVideoId: 0
+                }, () => {
+                  this.setVideoState();
+                })
+              } else {
+                this.setState({
+                  playlistData,
+                  currentVideoId: this.state.videos[playlistData.currentVideoIndex].youtubeId
+                }, () => {
+                  this.setVideoState();
+                })
+              }
+            });
           }
+          console.log(this.state.playlistOwner);
         })
       }
       else {
@@ -161,12 +214,13 @@ class Playlists extends Component {
         database.ref('/playlists/' + id).set({
           ...this.state.playlistData,
           currentTime: this.videoPlayer.getCurrentTime(),
-          isPlaying: true,
+          isPlaying: this.videoPlayer.getPlayerState() === 1 || this.videoPlayer.getPlayerState() === 3,
+          hostTime: Date.now(),
         });
       }
       setTimeout(() => {
         this.updateCurrentTime();
-      }, 2000);
+      }, 1000);
     }
   }
   addtoList = (video) => {
@@ -188,7 +242,7 @@ class Playlists extends Component {
               isLoading: false
             });   
           } else {
-            window.location.href = "http://localhost:3000/notfound"
+            window.location.href = 'https://videosink.herokuapp.com/notfound' || "http://localhost:3000/notfound"
           }
       })
   }
@@ -244,43 +298,46 @@ class Playlists extends Component {
           </form>
       </nav>
       <div className="container">
-        <div className="row">
-          <div className="col-3"><Users/></div>
-          <div className="col-6" style={{ justifyContent:"center" }}>
-            { this.state.currentVideoId === '' ? <div id="loader"></div>:
-              <div className="video-container">
-                <YouTube 
-                videoId={ this.state.currentVideoId }
-                opts={ opts }
-                onReady={ this._onReady.bind(this) }
-                onEnd={ this.nextVideo }
-                onStateChange={ this._onStateChange.bind(this) }
-                /> 
-              </div>
-            }
-            <h1 style={{ color:"white" }}>Upcoming Videos:</h1>
-            <div style={{ justifyContent: 'space-around', margin: '1px' }} className="row">
-              { this.state.isLoading? <h2>Loading playlist... </h2>:
-                  this.state.videos.map(video => (
-                    <div style={{ color:'white', display:'flex', justifyContent:'space-between', background:`URL('${video.video_thumbnail}')`, backgroundPosition:'center', height:'120px', width:'215px', backgroundSize:'100%', borderColor:'black', marginBottom: '20px' }} key={video.id}>
-                      <div style={{ justifyContent: 'space-between', height: 'auto', width: '100%', display: 'flex' }}>
-                        <span style={{ backgroundColor: "rgb(1,2,3,.6", overflow:'hidden', whiteSpace: "nowrap", textOverflow: "clip", height:"min-content"}}>{ video.video_title }</span>
-                        <div style={{ justifyContent: 'space-between', width: 'auto', display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ backgroundColor: "rgb(1,2,3,.6", paddingLeft:'10px', height:'21px', textAlign:'right'}}>{ this.formatDuration(video.duration)}</span>
-                          <span style={{width: 'auto', paddingLeft:'10px', color:'white', textAlign:"right"}}>
-                            <FaThumbsUp onClick={() => this.upVote(video)} className={css`color: #0C696A; opacity: 0.8; &:hover {color: #BEDE5C;opacity: 1}`} style={{ cursor:"pointer", textShadow: '1px 1px 1px #ccc' }}/> 
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))
+          <div className="row">
+          {/* <div style={{paddingTop:"5px"}} className="col-lg-2"><Users/></div> */}
+            <div className="col-12" style={{ justifyContent:"center" }}>
+              { this.state.currentVideoId === '' ? <div id="loader"></div>:
+                <div className="video-container">
+                  <YouTube 
+                  videoId={ this.state.currentVideoId }
+                  opts={ opts }
+                  onReady={ this._onReady.bind(this) }
+                  onEnd={ this.nextVideo.bind(this) }
+                  onStateChange={ this._onStateChange.bind(this) }
+                  /> 
+                </div>
               }
             </div>
-          </div>
+            <div className="col-9">
+              <h1 style={{ color:"white" }}>Upcoming Videos:</h1>
+              <div style={{ justifyContent: 'space-around', margin: '1px' }} className="row">
+                { this.state.isLoading? <h2>Loading playlist... </h2>:
+                    this.state.videos.map(video => (
+                      <div style={{ color:'white', display:'flex', justifyContent:'space-between', background:`URL('${video.video_thumbnail}')`, backgroundPosition:'center', height:'120px', width:'200px', backgroundSize:'100%', borderColor:'black', marginBottom: '20px' }} key={video.id}>
+                        <div style={{ justifyContent: 'space-between', height: 'auto', width: '100%', display: 'flex' }}>
+                          <span style={{ backgroundColor: "rgb(1,2,3,.6", overflow:'hidden', whiteSpace: "nowrap", textOverflow: "clip", height:"min-content"}}>{ video.video_title }</span>
+                          <div style={{ justifyContent: 'space-between', width: 'auto', display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ backgroundColor: "rgb(1,2,3,.6", paddingLeft:'10px', height:'21px', textAlign:'right'}}>{ this.formatDuration(video.duration)}</span>
+                            <span style={{width: 'auto', paddingLeft:'10px', color:'white', textAlign:"right"}}>
+                              <FaThumbsUp onClick={() => this.upVote(video)} className={css`color: #0C696A; opacity: 0.8; &:hover {color: #BEDE5C;opacity: 1}`} style={{ cursor:"pointer", textShadow: '1px 1px 1px #ccc' }}/> 
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                }
+              </div>
+            </div>
           <div className="col-3" style={{justifyContent:"center"}}>
+          <h1 style={{ color:"white" }}>Results:</h1>
             {
               this.state.results.length > 0
-              ? <SearchResults addToPlaylist = { this.addToPlaylist } results={this.state.results}/>
+              ? <SearchResults  addToPlaylist = { this.addToPlaylist } results={this.state.results}/>
               : ''
             }
           </div>

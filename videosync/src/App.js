@@ -6,6 +6,7 @@ import NotFound from './Components/NotFound';
 import Playlists from './Components/Playlists';
 import LandingPage from './Components/LandingPage';
 import Playlist from './Components/Playlist';
+import CreatePlaylist from './Components/CreatePlaylist';
 
 
 class App extends Component {
@@ -20,7 +21,7 @@ class App extends Component {
   };
   
   componentDidMount() {
-    const API_URL = 'http://localhost:5000/api/v1/playlists'
+    const API_URL = 'https://videosink.herokuapp.com/api/v1/playlists' || 'http://localhost:5000/api/v1/playlists'
     fetch(API_URL)
       .then(res => res.json())
       .then(playlists => {
@@ -38,6 +39,7 @@ class App extends Component {
         <Header/>
         <Switch>
           <Route exact path="/" component={LandingPage}/>
+          <Route path="/createplaylist" component={CreatePlaylist}/>
           <Route exact path="/playlists" component={Playlists}/>
           <Route path="/playlists/:id" component={Playlist}/>
           <Route path="*" component={NotFound}/>

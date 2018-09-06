@@ -7,7 +7,7 @@ class Playlists extends Component {
   };
 
   componentDidMount(){
-    const API_URL = 'http://localhost:5000/api/v1/playlists';
+    const API_URL = 'https://videosink.herokuapp.com/api/v1/playlists/' ||'http://localhost:5000/api/v1/playlists';
     fetch(API_URL)
       .then(res => res.json())
       .then(playlists => {

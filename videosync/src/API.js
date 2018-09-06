@@ -1,16 +1,23 @@
+const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:5000/api/v1' : 'https://videosink.herokuapp.com/api/v1'
+
 export function getSuggestions(event) {
-  return fetch(`http://localhost:5000/api/v1/videos/suggestion/${event}}`)
+  return fetch(`${API_URL}/videos/suggestion/${event}` )
     .then((req)=> req.json())
 }
 
 export function getVideoOptions(term) {
-  return fetch(`http://localhost:5000/api/v1/videos/search/${term}`)
+  return fetch(`${API_URL}/videos/search/${term}` )
     .then((req)=> req.json())
 }
 
+// export function createPlaylist(term) {
+//   return fetch(`${API_URL}/videos/search/${term}` )
+//     .then((req)=> req.json())
+// }
+
 export function putVideosOnPlaylist(id, videos) {
-  const API_URL = `http://localhost:5000/api/v1/playlists/${id}/videos`
-  return fetch(API_URL, {
+  const currentAPI_URL = `${API_URL}/playlists/${id}/videos`
+  return fetch(currentAPI_URL, {
     method: 'POST',
     body: JSON.stringify(videos),
     headers: {
@@ -20,7 +27,7 @@ export function putVideosOnPlaylist(id, videos) {
 }
 
 export function getVideosByPlaylist(id) {
-  const API_URL = `http://localhost:5000/api/v1/playlists/${id}/videos`;
-  return fetch(API_URL)
+  const currentAPI_URL = `${API_URL}/playlists/${id}/videos`;
+  return fetch(currentAPI_URL)
     .then(res => res.json())
 }
