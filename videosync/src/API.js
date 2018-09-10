@@ -10,10 +10,15 @@ export function getVideoOptions(term) {
     .then((req)=> req.json())
 }
 
-// export function createPlaylist(term) {
-//   return fetch(`${API_URL}/videos/search/${term}` )
-//     .then((req)=> req.json())
-// }
+export function createPlaylist(title) {
+  return fetch(`${API_URL}/playlists`, {
+      method: 'POST',
+      body: JSON.stringify({ title }),
+      headers: {
+        'content-type': 'application/json'
+      }
+    }).then(res => res.json())
+}
 
 export function putVideosOnPlaylist(id, videos) {
   const currentAPI_URL = `${API_URL}/playlists/${id}/videos`

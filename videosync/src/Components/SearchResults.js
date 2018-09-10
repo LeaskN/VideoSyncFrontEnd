@@ -31,7 +31,7 @@ class SearchResults extends Component {
     return (
       <div style={{justifyContent:"center"}}>
         {results.map( result => (
-          <div key={result.id} onClick={() => this.searchResultClicked(result)} style={{cursor:"pointer", height:'120px', width:'200px', backgroundSize: "250px 140px", backgroundRepeat: "no-repeat", backgroundImage:`url("${result.thumbnails.high.url}")`, marginBottom:'20px'}}>
+          <div key={ result.id } onClick={() => this.searchResultClicked(result)} style={{cursor:"pointer", height:'120px', width:'200px', backgroundSize: "250px 140px", backgroundRepeat: "no-repeat", backgroundImage:`url("${result.thumbnails.high.url}")`, marginBottom:'20px'}}>
             <h6 style={{ backgroundColor:"rgb(0, 0, 0, .5)",  maxWidth:"380px", justifySelf:"flex-end", color:"white", }}>{result.localized.title}</h6>
             <span style={{ borderRadius:"10%", backgroundColor:"rgb(0, 0, 0, .5)", justifySelf:"flex-end", color:"white"}}>{this.formatDuration(result.duration)}</span>
           </div>

@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import SearchResults from './SearchResults';
-import Users from './Users';
 import { FaThumbsUp } from 'react-icons/fa';
 import { css } from 'emotion'
 import YouTube from 'react-youtube';
@@ -40,11 +39,12 @@ class Playlists extends Component {
       const differenceFromHost = (Date.now() - this.state.playlistData.hostTime)/1000;
       const expectedTime = videoTime + differenceFromHost;
       const differenceFromRealTime = this.videoPlayer.getCurrentTime() - expectedTime;
-      console.log((this.videoPlayer.getCurrentTime() - videoTime));
       console.log('Difference:', differenceFromRealTime);
-      if (Math.abs(differenceFromRealTime) > 0.084) {
-        console.log('seeking to: ', expectedTime );
-        this.videoPlayer.seekTo(expectedTime + .1);
+      console.log(this.videoPlayer.getPlayerState());
+      
+      if (Math.abs(differenceFromRealTime) > 0.06) {
+        console.log('seeking to: ', expectedTime + .3);
+        this.videoPlayer.seekTo(expectedTime + .3);
       }
     }
   }
@@ -62,7 +62,6 @@ class Playlists extends Component {
   nextVideo = () => {
     if(this.state.playlistOwner){
       const { id } = this.props.match.params;
-      console.log(this.videoPlayer);
       if(this.state.playlistData.currentVideoIndex >= this.state.videos.length - 1){
         this.videoPlayer = null;
         database.ref('/playlists/' + id).set({
@@ -152,12 +151,26 @@ class Playlists extends Component {
             });
             this.setVideoState();
           } else if (playlistData.creatorId === user.uid) {
+            console.log('"else if" creatorId = user.uid is running');
+            database.ref('/playlists/' + id).set({
+              currentTime: 0,
+              currentVideoIndex: 0,
+              isPlaying: true,
+              creatorId: user.uid,
+              hostTime: Date.now(),
+            });
             this.setState({
               playlistOwner: true,
-              playlistData
+              playlistData: {
+                currentTime: 0,
+                currentVideoIndex: 0,
+                isPlaying: true,
+                hostTime: Date.now(),
+              }
             });
             this.setVideoState();
           } else {
+            console.log('"else" is running');
             database.ref('/playlists/' + id).on('value', (snapshot) => {
               const playlistData = snapshot.val();   
               if (!this.state.videos[playlistData.currentVideoIndex]) {
@@ -179,9 +192,6 @@ class Playlists extends Component {
           }
           console.log(this.state.playlistOwner);
         })
-      }
-      else {
-        alert('logged out')
       }
     });
   }

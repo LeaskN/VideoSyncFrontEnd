@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom'
 import { Typeahead } from 'react-bootstrap-typeahead';
-import { getSuggestions, getVideoOptions, putVideosOnPlaylist, getVideosByPlaylist } from '../API';
+import { getSuggestions, createPlaylist, getVideoOptions, putVideosOnPlaylist } from '../API';
 import SearchResults from './SearchResults';
+import database from "../firebase";
 
 class CreatePlaylist extends Component {
   state = {
@@ -13,6 +15,7 @@ class CreatePlaylist extends Component {
     clickedId: 'tgbNymZ7vqY',
     playlists: [],
     playlist: [],
+    playlistTitle: ''
   };
   searchingForVideo = (event) => {
     this.setState({
@@ -26,10 +29,56 @@ class CreatePlaylist extends Component {
           this.setState({
             options: newOptions,
           })
-          console.log(this.state.options);
         }
       })
     }
+  }
+  playlistTitleChanged = (e) => {
+    this.setState({
+      playlistTitle: e.target.value,
+    })
+  }
+  formatDuration(duration){
+    let firstIteration = duration.split('PT').join('').split('S').join('');
+    let mSplit = firstIteration.split('M');
+    let seconds = mSplit[mSplit.length - 1 ] || '00';
+    let hSplit = mSplit[0].split('H');
+    let mins;
+    let hours;
+    if (hSplit.length === 2) {
+      hours = hSplit[0]
+      mins = hSplit[1]
+    } else {
+      hours = 0;
+      mins = hSplit[0];
+    }
+    const pad = number => number.length === 1 ? '0' + number : number
+    return `${pad(hours)}:${pad(mins)}:${pad(seconds)}`
+  }
+  createNewPlaylist = (e) => {
+    e.preventDefault();
+    console.log(this.state.playlistTitle)
+    createPlaylist(this.state.playlistTitle)
+    .then(playlist => {
+      const playlistId = playlist.id
+      Promise.all(this.state.videos.map(video => { 
+        video.playlistId = playlist.id
+        return putVideosOnPlaylist(playlistId, video)
+      }))
+      .then( () => {
+        console.log(playlistId);
+        
+        database.ref('/playlists/' + playlistId).set({
+          currentTime: 0,
+          currentVideoIndex: 0,
+          isPlaying: true,
+          creatorId: '',
+          hostTime: Date.now(),
+        }).then(()=> {
+          this.props.history.push(`/playlists/${playlistId}`);
+        })
+      })
+    })
   }
   submitted = (e) => {
     e.preventDefault();
@@ -48,8 +97,6 @@ class CreatePlaylist extends Component {
         } else {
           console.log("Invalid Search!")
         }
-        console.log(this.state.results);
-        
       })
     }
   }
@@ -57,35 +104,21 @@ class CreatePlaylist extends Component {
     let newVideo = {};
     newVideo.video_title = video.title;
     newVideo.video_url = 'https://www.youtube.com/watch?' + video.id + 'rel=0' ;
-    newVideo.playlistId = this.props.match.params.id ;
     newVideo.video_thumbnail = video.thumbnails.high.url;
     newVideo.duration = video.duration;
     newVideo.youtubeId = video.id;
     this.addtoList(newVideo);
   }
   addtoList = (video) => {
-    console.log(video);
     this.setState({
       creating: true,
     });
-    const { id } = this.props.match.params;
-    console.log(id);
-    
-    putVideosOnPlaylist(id, video)
-    .then(() => this.refresh(false))
+    this.putVideosOnNewPlaylist(video)
   }
-  refresh(firstLoad = true){
-    const { id } = this.props.match.params;
-    getVideosByPlaylist(id)
-      .then(videos => {
-          if (videos[0]) {
-            this.setState({
-              videos,
-            });   
-          } else {
-            window.location.href = 'https://videosink.herokuapp.com/notfound' || "http://localhost:3000/notfound"
-          }
-      })
+  putVideosOnNewPlaylist = (video) => {
+    this.setState({
+      videos: [...this.state.videos, video]
+    })
   }
   render(){
     return(
@@ -103,9 +136,9 @@ class CreatePlaylist extends Component {
             </form>
           </div>
           <div className="col">
-            <form>
+            <form onSubmit={ this.createNewPlaylist }>
               <div className="form-group">
-                <input type="text" className="form-control" id="formGroupExampleInput" placeholder="Playlist Name:"/>
+                <input onChange={ this.playlistTitleChanged } /* pass into create playlist */ type="text" className="form-control" id="formGroupExampleInput" placeholder="Playlist Name" required/>
               </div>
               <button type="submit" className="btn btn-primary">Submit</button>
             </form>
@@ -115,7 +148,7 @@ class CreatePlaylist extends Component {
           <div className="col-7" style={{justifyContent:"center"}}>
             <h1 style={{ color:"white" }}>Playlist Videos:</h1>
                 <div style={{ justifyContent: 'space-around', margin: '1px' }} className="row">
-                  { this.state.isLoading? <h2>Search and select some songs! </h2>:
+                  { this.state.videos.length === 0 ? <h2>Search and select some songs! </h2>:
                       this.state.videos.map(video => (
                         <div style={{ color:'white', display:'flex', justifyContent:'space-between', background:`URL('${video.video_thumbnail}')`, backgroundPosition:'center', height:'120px', width:'215px', backgroundSize:'100%', borderColor:'black', marginBottom: '20px' }} key={video.id}>
                           <div style={{ justifyContent: 'space-between', height: 'auto', width: '100%', display: 'flex' }}>
@@ -133,7 +166,7 @@ class CreatePlaylist extends Component {
           <div className="col-5" style={{justifyContent:"center"}}>
             {
               this.state.results.length > 0
-              ? <SearchResults addToPlaylist = { this.addToPlaylist } results={this.state.results}/>
+              ? <SearchResults addToPlaylist = { this.addToPlaylist } results = {this.state.results}/>
               : ''
             }
           </div>
@@ -144,4 +177,4 @@ class CreatePlaylist extends Component {
   }
 };
 
-export default CreatePlaylist;
+export default withRouter(CreatePlaylist);
