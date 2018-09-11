@@ -6,16 +6,15 @@ const Header = () => (
         <span className="navbar-toggler-icon"></span>
       </button>
       <div className="collapse navbar-collapse" id="navbarColor01">
-      <a className="navbar-brand" style={{ justifyContent:"space-between" }} href="/">VideoSync</a>
+        <a className="nav-link" href="/playlists">
+          <img alt="Video Sync" src="/media/logo_transparent.png" height="70px"></img>
+        </a>
         <ul className="navbar-nav ml-auto">
           <li className="nav-item">
-            <a className="nav-link" href="">Create A Room</a>
+            <a className="nav-link" href="/createplaylist">Create A Room</a>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href="">Join a Room</a>
-          </li>
-          <li className="nav-item">
-            <a className="nav-link" href="" >Login</a>
+            <a className="nav-link" href="/playlists">Join a Room</a>
           </li>
         </ul>
       </div>

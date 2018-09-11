@@ -41,11 +41,10 @@ class Playlists extends Component {
       const differenceFromRealTime = this.videoPlayer.getCurrentTime() - expectedTime;
       console.log('Difference:', differenceFromRealTime);
       console.log(this.videoPlayer.getPlayerState());
-      
       if (Math.abs(differenceFromRealTime) > 0.06) {
         console.log('seeking to: ', expectedTime + .3);
         this.videoPlayer.seekTo(expectedTime + .3);
-      }
+      } 
     }
   }
   _onReady(event) {
@@ -138,7 +137,7 @@ class Playlists extends Component {
         this._user = user;
         database.ref('/playlists/' + id).once('value').then( snapshot => {
           const playlistData = snapshot.val();
-          if (!playlistData.creatorId || playlistData.creatorId === ''){
+          if (!playlistData || !playlistData.creatorId || playlistData.creatorId === ''){
             database.ref('/playlists/' + id).set({
               currentTime: 0,
               currentVideoIndex: 0,
@@ -151,7 +150,6 @@ class Playlists extends Component {
             });
             this.setVideoState();
           } else if (playlistData.creatorId === user.uid) {
-            console.log('"else if" creatorId = user.uid is running');
             database.ref('/playlists/' + id).set({
               currentTime: 0,
               currentVideoIndex: 0,
@@ -170,7 +168,6 @@ class Playlists extends Component {
             });
             this.setVideoState();
           } else {
-            console.log('"else" is running');
             database.ref('/playlists/' + id).on('value', (snapshot) => {
               const playlistData = snapshot.val();   
               if (!this.state.videos[playlistData.currentVideoIndex]) {
@@ -309,8 +306,7 @@ class Playlists extends Component {
       </nav>
       <div className="container">
           <div className="row">
-          {/* <div style={{paddingTop:"5px"}} className="col-lg-2"><Users/></div> */}
-            <div className="col-12" style={{ justifyContent:"center" }}>
+            <div className="col-md-10 offset-md-1" style={{ justifyContent:"center" }}>
               { this.state.currentVideoId === '' ? <div id="loader"></div>:
                 <div className="video-container">
                   <YouTube 
@@ -323,10 +319,10 @@ class Playlists extends Component {
                 </div>
               }
             </div>
-            <div className="col-9">
+            <div className={this.state.results.length === 0 ? "col-12" : "col-9"}>
               <h1 style={{ color:"white" }}>Upcoming Videos:</h1>
               <div style={{ justifyContent: 'space-around', margin: '1px' }} className="row">
-                { this.state.isLoading? <h2>Loading playlist... </h2>:
+                { this.state.isLoading ? <h2>Loading playlist... </h2>:
                     this.state.videos.map(video => (
                       <div style={{ color:'white', display:'flex', justifyContent:'space-between', background:`URL('${video.video_thumbnail}')`, backgroundPosition:'center', height:'120px', width:'200px', backgroundSize:'100%', borderColor:'black', marginBottom: '20px' }} key={video.id}>
                         <div style={{ justifyContent: 'space-between', height: 'auto', width: '100%', display: 'flex' }}>
@@ -346,9 +342,9 @@ class Playlists extends Component {
           <div className="col-3" style={{justifyContent:"center"}}>
           <h1 style={{ color:"white" }}>Results:</h1>
             {
-              this.state.results.length > 0
-              ? <SearchResults  addToPlaylist = { this.addToPlaylist } results={this.state.results}/>
-              : ''
+              this.state.results.length === 0
+              ? ''
+              : <SearchResults  addToPlaylist = { this.addToPlaylist } results={this.state.results}/>
             }
           </div>
         </div>

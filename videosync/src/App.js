@@ -3,11 +3,9 @@ import './App.css';
 import { Route, Switch } from 'react-router-dom';
 import Header from './Components/Header';
 import NotFound from './Components/NotFound';
-import Playlists from './Components/Playlists';
 import LandingPage from './Components/LandingPage';
 import Playlist from './Components/Playlist';
 import CreatePlaylist from './Components/CreatePlaylist';
-
 
 class App extends Component {
   state = {
@@ -38,9 +36,11 @@ class App extends Component {
       <div className="app">
         <Header/>
         <Switch>
-          <Route exact path="/" component={LandingPage}/>
+          <Route exact path="/playlists" render={(routeProps) => (
+              <LandingPage {...routeProps} {...this.props} playlists={this.state.playlists}/>
+            )}
+          />
           <Route path="/createplaylist" component={CreatePlaylist}/>
-          <Route exact path="/playlists" component={Playlists}/>
           <Route path="/playlists/:id" component={Playlist}/>
           <Route path="*" component={NotFound}/>
         </Switch>

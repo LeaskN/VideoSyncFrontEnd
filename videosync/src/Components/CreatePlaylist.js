@@ -66,16 +66,18 @@ class CreatePlaylist extends Component {
         return putVideosOnPlaylist(playlistId, video)
       }))
       .then( () => {
-        console.log(playlistId);
-        
         database.ref('/playlists/' + playlistId).set({
           currentTime: 0,
           currentVideoIndex: 0,
           isPlaying: true,
           creatorId: '',
           hostTime: Date.now(),
-        }).then(()=> {
-          this.props.history.push(`/playlists/${playlistId}`);
+        }, (error) => {
+          if (error) {
+            console.log('error creating playlist');
+          } else {
+            this.props.history.push(`/playlists/${playlistId}`);
+          }
         })
       })
     })
@@ -123,11 +125,11 @@ class CreatePlaylist extends Component {
   render(){
     return(
     <div>
-      <div className="container alert" style={{backgroundColor:"#138C8D", display:"flex", justifyContent:"space-evenly", flexDirection:"column", alignContent:"space-around"}} >
-        <div className="row">
-          <h4 className="heading">Create A Playlist!</h4>
-          <p className="mb-0">Add a name and choose your first few songs using the search bar above. You can add more at any time once your playlist has been created!</p>
-        </div>
+      <div className="container alert" style={{ backgroundColor:"#138C8D"}} >
+        <div className="col-12">
+          <h4>Create A Playlist!</h4>
+          <p><hr/>Add a name and choose your first few songs using the search bar above.<hr/> You can add more at any time once your playlist has been created!</p>
+          </div>
         <div className="row">
           <div className="col">
             <form className="form-inline my-2 my-lg-0" onSubmit={this.submitted}>

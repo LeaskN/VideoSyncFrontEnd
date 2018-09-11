@@ -2,12 +2,17 @@ const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:500
 
 export function getSuggestions(event) {
   return fetch(`${API_URL}/videos/suggestion/${event}` )
-    .then((req)=> req.json())
+    .then(req => req.json())
 }
 
 export function getVideoOptions(term) {
   return fetch(`${API_URL}/videos/search/${term}` )
-    .then((req)=> req.json())
+    .then(req => req.json())
+}
+
+export function getPlaylists() {
+  return fetch(`${API_URL}/playlists`)
+    .then(res => res.json())
 }
 
 export function createPlaylist(title) {
