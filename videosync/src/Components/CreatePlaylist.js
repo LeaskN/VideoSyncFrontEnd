@@ -125,7 +125,7 @@ class CreatePlaylist extends Component {
   render(){
     return(
     <div>
-      <div className="container alert" style={{ backgroundColor:"#138C8D"}} >
+      <div className="container alert" style={{ backgroundColor:"#138C8D", marginTop:"20px"}} >
         <div className="col-12">
           <h4>Create A Playlist!</h4>
           <p><hr/>Add a name and choose your first few songs using the search bar above.<hr/> You can add more at any time once your playlist has been created!</p>

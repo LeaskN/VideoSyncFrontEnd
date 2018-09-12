@@ -150,6 +150,8 @@ class Playlists extends Component {
             });
             this.setVideoState();
           } else if (playlistData.creatorId === user.uid) {
+            console.log(playlistData.creatorId);
+            console.log(user.uid);
             database.ref('/playlists/' + id).set({
               currentTime: 0,
               currentVideoIndex: 0,
@@ -222,6 +224,7 @@ class Playlists extends Component {
           ...this.state.playlistData,
           currentTime: this.videoPlayer.getCurrentTime(),
           isPlaying: this.videoPlayer.getPlayerState() === 1 || this.videoPlayer.getPlayerState() === 3,
+          creatorId: this._user.uid,
           hostTime: Date.now(),
         });
       }
