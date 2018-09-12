@@ -3,7 +3,7 @@ import React from 'react';
 const Header = () => (
     <nav style={{backgroundColor:"#00696B"}} className="navbar navbar-expand navbar-dark">
       <div className="navbar-collapse" id="navbarColor01">
-        <a className="nav-link" href="/landingpage">
+        <a className="nav-link" href="/">
           <img alt="Video Sync" src="/media/logo_transparent.png" height="70px"></img>
         </a>
         <ul className="navbar-nav ml-auto">
